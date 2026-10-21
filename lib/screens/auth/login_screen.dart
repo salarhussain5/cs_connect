@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../../utils/constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -40,14 +43,49 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = '';
     });
 
-    // Real login logic will be added in Day 9 when FastAPI is connected
-    // For now we just wait 1 second and show a message
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final email = _emailController.text.trim();
 
-    setState(() {
-      _isLoading = false;
-      _errorMessage = 'Backend not connected yet. Coming in Day 9.';
-    });
+      // Send real HTTP GET request to FastAPI backend
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiBaseUrl}/verify/student?email=$email'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        if (data['exists'] == true) {
+          // Successfully verified student
+          setState(() {
+            _errorMessage = '';
+          });
+          
+          // Show a success message or navigate to dashboard
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Welcome back, ${data['name']}! (Roll: ${data['roll_number']})')),
+            );
+          }
+        } else {
+          setState(() {
+            _errorMessage = 'Student email not found in department database.';
+          });
+        }
+      } else {
+        setState(() {
+          _errorMessage = 'Server error: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
+      // Handles network connection issues (e.g. phone cannot reach laptop IP)
+      setState(() {
+        _errorMessage = 'Connection failed. Check your Wi-Fi or backend server.';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override

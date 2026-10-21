@@ -57,6 +57,6 @@ class AppGroups {
 // ─── FastAPI Server URL ────────────────────────────────────────────────────
 // Change this URL when you deploy to Railway in Module 2
 class AppConfig {
-  static const String apiBaseUrl = 'http://127.0.0.1:8000'; // local testing
+  static const String apiBaseUrl = 'http://192.168.100.8:8000'; // local testing
   // When Railway is set up, change to: 'https://your-app.railway.app'
 }
